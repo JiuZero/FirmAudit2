@@ -255,6 +255,7 @@ em { font-style: normal; color: var(--cyan); }
 .get__note { font-size: 12.5px; color: var(--dim); }
 .get__poster { position: relative; z-index: 1; width: min(980px, calc(100% - 40px)); margin: 34px auto 0; }
 .get__poster img { display: block; width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 30px 70px -34px rgba(0, 0, 0, 0.9); }
+.get__poster figcaption { margin-top: 12px; text-align: center; font-size: 13px; color: var(--dim); }
 
 /* ---------- 页脚 ---------- */
 .footer { background: #03050a; border-top: 1px solid var(--line); padding: 44px 0; }
