@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FirmAudit2 · 让 Agent 挖到的每一个固件漏洞都可核对</title>
+  <meta name="description" content="FirmAudit2 是 AI 驱动的固件漏洞审计平台：会话级沙箱隔离、八段引导式登记、四道结果门、命令级复现验证，直至产出可提交的 CNVD 交付总包。" />
+  <link rel="icon" type="image/png" href="assets/img/favicon.png" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <!-- 图标精灵：线性描边风格，全站统一引用 -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2M9 2v2M15 20v2M9 20v2M2 15h2M2 9h2M20 15h2M20 9h2"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.57 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6"/><path d="m12 19 8-8-8-8"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M14 9h4l4 4v4a1 1 0 0 1-1 1h-1"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.76.12 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.26 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="16" width="6" height="6" rx="1.5"/><rect x="16" y="16" width="6" height="6" rx="1.5"/><path d="M12 8v4M12 12H5v4M12 12h7v4"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5 13.9 9 19.5 11 13.9 13 12 18.5 10.1 13 4.5 11 10.1 9Z"/><path d="M18.5 3.5v3M20 5h-3"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 3.5-3.5 3 3L20 7"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.06 12.35a1 1 0 0 1 0-.7C3.42 7.51 7.36 5 12 5s8.58 2.51 9.94 6.65a1 1 0 0 1 0 .7C20.58 16.49 16.64 19 12 19s-8.58-2.51-9.94-6.65Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.5 12.5 8-8M17 5.5l2 2M14.5 8l2 2"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></symbol>
+  </defs></svg>
+
+  <header class="nav" id="top">
+    <div class="nav__progress" id="navProgress" aria-hidden="true"></div>
+    <div class="container nav__inner">
+      <a class="brand" href="#top">
+        <img src="assets/img/logo.png" alt="" class="brand__logo" />
+        <span class="brand__name">FirmAudit2</span>
+        <span class="brand__tag">固件漏洞审计平台</span>
+      </a>
+      <nav class="nav__links" id="navLinks">
+        <a href="#why">问题</a>
+        <a href="#design">约束设计</a>
+        <a href="#gates">质量门</a>
+        <a href="#ui">界面预览</a>
+        <a href="#data">实测数据</a>
+        <a href="#arch">运行环境</a>
+        <a class="nav__cta" href="#get">获取授权</a>
+      </nav>
+      <button class="nav__toggle" id="navToggle" aria-label="切换菜单" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero__glow" aria-hidden="true"></div>
+    <div class="hero__grid" aria-hidden="true"></div>
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <p class="chip chip--eyebrow reveal">
+          <svg class="ic ic--sm" aria-hidden="true"><use href="#i-sparkle"/></svg>
+          AI Agent × 固件安全审计
+        </p>
+        <h1 class="reveal">让 Agent 的每个结论<br /><span class="grad">可回放、可校验、可交付</span></h1>
+        <p class="lead reveal">
+          工具从来不缺，缺的是工具之间那段人肉路，以及"它说有洞"到"评审者认这个洞"之间的距离。
+          FirmAudit2 把<em>结论可信</em>本身当成工程问题来做：过程可回放、字段可校验、产物可核对。
+        </p>
+        <div class="hero__actions reveal">
+          <a class="btn btn--primary" href="#ui">
+            看界面预览
+            <svg class="ic ic--sm" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="#gates">四道质量门怎么拦</a>
+        </div>
+        <dl class="hero__stats reveal">
+          <div><dt><svg class="ic ic--sm" aria-hidden="true"><use href="#i-layers"/></svg>8 段</dt><dd>漏洞资料分段引导填充</dd></div>
+          <div><dt><svg class="ic ic--sm" aria-hidden="true"><use href="#i-shield"/></svg>4 道</dt><dd>收口 / 仿真 / 资产 / 复核门</dd></div>
+          <div><dt><svg class="ic ic--sm" aria-hidden="true"><use href="#i-timer"/></svg>15 min</dt><dd>单次工具调用静默阈值</dd></div>
+        </dl>
+      </div>
+      <figure class="hero__shot reveal">
+        <div class="prod prod--mini" role="img" aria-label="FirmAudit2 系统概况界面结构示意，数据为虚构示例">
+          <div class="prod__top">
+            <span class="prod__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="prod__brand"><b>FirmAudit2</b><em>固件漏洞审计平台</em></span>
+            <span class="prod__crumb">工作区 › <b>系统概况</b></span>
+            <span class="prod__top-right">
+              <span class="pchip pchip--demo">示意</span>
+              <span class="pchip"><i class="pled pled--ok"></i>后端</span>
+              <span class="pchip"><i class="pled pled--ok"></i>沙箱</span>
+            </span>
+          </div>
+          <div class="prod__mini-body">
+            <div class="ptiles">
+              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-activity"/></svg>运行中任务</span><b>1 <em>/ 2 配额</em></b></div>
+              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-key"/></svg>模型连接</span><b>已配置 <em>示例网关</em></b></div>
+              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-box"/></svg>沙箱运行时</span><b>wsl2 <em>独立发行版</em></b></div>
+              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-shield"/></svg>隔离状态</span><b>overlay <em>会话临时根</em></b></div>
+            </div>
+            <div class="prail__sec">
+              <h5><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>本机资源<span>示意</span></h5>
+              <div class="pmet"><span>CPU 18%</span><i><b style="width:18%"></b></i></div>
+              <div class="pmet"><span>内存 64%</span><i><b style="width:64%"></b></i></div>
+              <div class="pmet"><span>磁盘 41%</span><i><b style="width:41%"></b></i></div>
+            </div>
+          </div>
+          <div class="prod__foot">
+            <span><i class="pled pled--ok"></i>WSL2 沙箱就绪 · daemon 已连接 · 本机控制平面</span>
+          </div>
+        </div>
+        <figcaption class="hero__caption">
+          <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>Windows 11 桌面端</span>
+          <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-network"/></svg>WSL2 独立发行版</span>
+          <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-db"/></svg>事件全量落库</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 问题 -->
+  <section class="section" id="why">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-alert"/></svg>为什么要有它</p>
+        <h2>做固件审计的人，都被这四件事磨过</h2>
+        <p class="section__sub">binwalk、FirmAE、radare2、QEMU 都在，可它们之间那段路全靠人肉走。</p>
+      </div>
+      <div class="cards cards--4">
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg></span>
+          <h3>工具齐全，链路断裂</h3>
+          <p>解包、仿真、逆向、报告各有一堆工具，串起来仍然靠手工：换一份固件，就要重走一遍全过程。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg></span>
+          <h3>让模型跑命令，心里发虚</h3>
+          <p>它一句 <code>apt install</code> 就能把环境搞乱，下一次任务的结论就不再建立在同一个基线上。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg></span>
+          <h3>复现失败，锅在人身上</h3>
+          <p>它说"这里有个命令注入"，自己复现利用失败，转头追问，AI 答：是你的操作有误。结论无法自证。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-truck"/></svg></span>
+          <h3>挖到洞，交付再熬一晚</h3>
+          <p>手抄复现步骤、整理证据、套 CNVD 模板，一晚上又没了。材料齐不齐，全靠提交前自查。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 三层约束 -->
+  <section class="section section--alt" id="design">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-grid"/></svg>设计理念</p>
+        <h2>三层约束，把"可信"变成可校验的状态</h2>
+        <p class="section__sub">
+          模型被允许一次性自由发挥，而质量这种东西一旦自由发挥就没法校验。
+          FirmAudit2 的做法是：用较长的输入，换较少但标准的输出。
+        </p>
+      </div>
+      <div class="layers">
+        <article class="layer reveal">
+          <header>
+            <span class="layer__no">01</span>
+            <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg></span>
+            <h3>过程约束</h3>
+          </header>
+          <p>漏洞资料按 8 个段落逐段引导填充，每段过校验；段落表同时驱动引导提示词、提交校验与报告章节，是单一事实源。</p>
+          <ul class="kv">
+            <li><span>打回即回注</span><span>校验失败的原因原样拼进下一次引导</span></li>
+            <li><span>串行推进</span><span>一次只推进队首一个漏洞，填不完不算完成</span></li>
+            <li><span>投递对账</span><span>超时收不到提交即判未送达，重投并留痕</span></li>
+          </ul>
+        </article>
+        <article class="layer reveal">
+          <header>
+            <span class="layer__no">02</span>
+            <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></span>
+            <h3>结果约束</h3>
+          </header>
+          <p>任务收口和交付前各设门，共四道。判据全部来自文件里读出来的痕迹，不来自模型的自我声明。</p>
+          <ul class="kv">
+            <li><span>收口门</span><span>引导没填完，就不许判定为完成</span></li>
+            <li><span>仿真硬门</span><span>证据里必须同时有"起来过"和"回显过"</span></li>
+            <li><span>资产证明门</span><span>版本信息必须在复现头两步</span></li>
+            <li><span>报告复核门</span><span>正文与结构化字段逐条对账，漂移即重开</span></li>
+          </ul>
+        </article>
+        <article class="layer reveal">
+          <header>
+            <span class="layer__no">03</span>
+            <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg></span>
+            <h3>运行时约束</h3>
+          </header>
+          <p>会话级隔离 + 单次工具调用级活性看护。Agent 在回合里改 <code>/etc</code>、装包全部成功，但写进的是这个会话私有的上层，回合结束随之销毁。</p>
+          <ul class="kv">
+            <li><span>overlay 临时根</span><span>宿主整盘与密钥不进沙箱</span></li>
+            <li><span>分级处置</span><span>中止回合 → 回注纪律 → 提前判失败</span></li>
+            <li><span>重启可续</span><span>任务状态落盘，程序重启不打断审计</span></li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 质量门 -->
+  <section class="section" id="gates">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>结果门</p>
+        <h2>四道门，每条缺口都是一行能读懂的人话</h2>
+        <p class="section__sub">操作员不必猜平台为什么不出包——缺口名后面直接跟着原因。</p>
+      </div>
+      <div class="gates">
+        <article class="gate reveal">
+          <div class="gate__head">
+            <span class="gate__icon"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span>
+            <h3>门一 · 收口门</h3>
+            <span class="chip chip--sm">状态判定的前置条件</span>
+          </div>
+          <p>Agent 结束不等于任务完成。收口前先看引导进度，没填完就转入暂停中，并把待补清单写进状态字段。</p>
+          <pre class="quote">Agent 已结束，但漏洞资料未填完，任务未判定为完成，已转入暂停中。待填清单：
+- VULN-A（示意）：已填 2/8 段，当前缺「代码分析步骤」，等待引导续填
+- VULN-B（示意）：已填 0/8 段，当前缺「漏洞信息」，等待引导续填</pre>
+          <p class="gate__foot"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-refresh"/></svg>一小时后触发"恢复审计"，同一条漏洞接着从第 3 段填到第 8 段，前后 6 分钟。</p>
+        </article>
+        <article class="gate reveal">
+          <div class="gate__head">
+            <span class="gate__icon"><svg class="ic" aria-hidden="true"><use href="#i-activity"/></svg></span>
+            <h3>门二 · 本地仿真验证硬门</h3>
+            <span class="chip chip--sm">证据只认运行时输出</span>
+          </div>
+          <p>静态分析做得再漂亮也只是分析。判据两条：复现步骤里有实际生效的启动命令，证据文件里同时出现"目标被起来"和"目标给出结果"两类痕迹。</p>
+          <pre class="quote">本地仿真验证：证据里看不到目标被起来的痕迹（需含 qemu / FirmAE / Unicorn 启动输出
+或服务 Listening 回显），请按分级方案实际启动目标并把启动命令的转录登记进证据</pre>
+          <p class="gate__foot"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-alert"/></svg>硬编码密钥、弱口令这类文件系统即可确证的类型走显式豁免，门不至于变成死规矩。</p>
+        </article>
+        <article class="gate reveal">
+          <div class="gate__head">
+            <span class="gate__icon"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg></span>
+            <h3>门三 · CNVD 资产证明门</h3>
+            <span class="chip chip--sm">版本信息必须在头两步</span>
+          </div>
+          <p>评审的第一诉求很朴素：先证明你复现的是这块固件。判据是"命令动词 + 版本载体"在前两个编号步骤内同现，拖到发 payload 之后再提就不算。</p>
+          <pre class="quote">复现的首要步骤要用命令展示固件版本信息（前两步之内，起目标之前）：解包后 cat 版本文件
+（如 ./rootfs/etc/version、./rootfs/etc/demo_version）或回读设备版本接口，并让输出与报告的固件版本一致</pre>
+          <p class="gate__foot"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>这一步 Agent 从来不会主动写——因为以前没人把它写成要求。</p>
+        </article>
+        <article class="gate reveal">
+          <div class="gate__head">
+            <span class="gate__icon"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg></span>
+            <h3>门四 · 报告复核门</h3>
+            <span class="chip chip--sm">过了门也不是一劳永逸</span>
+          </div>
+          <p>八段填齐只说明材料收齐。报告正文与已入库的结构化字段逐条对账：章节齐备、全链完整、正文与字段一致、可读性下限、本地仿真验证。</p>
+          <pre class="quote">复核通过后报告又出现缺口：正文引用的脚本与证据段列出的文件对不上
+→ 复核门自动重开（最多 2 次），不占死队列；人工确认仍是更权威的终审</pre>
+          <p class="gate__foot"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-eye"/></svg>交付门只报告缺口，状态变更只在一处——监视循环最容易出双写冲突的地方被刻意留空。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 八段引导 -->
+  <section class="section section--alt" id="guide">
+    <div class="container split">
+      <div class="split__text">
+        <p class="chip chip--eyebrow reveal"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-layers"/></svg>分段式引导</p>
+        <h2 class="reveal">8 个段落，与交付报告章节一一对应</h2>
+        <p class="reveal">
+          同一个任务里，放任自由发挥的模型会给你三段"我觉得这里有洞"的散文，
+          复现步骤的具体命令和数学答案一样"略略略"。换成先登记、再逐段填充、每段过校验，
+          报告质量就变成了可校验的状态。
+        </p>
+        <ol class="sections-list reveal">
+          <li><b>漏洞信息</b><span>类型 / 严重度 / 组件 / 置信度</span></li>
+          <li><b>漏洞描述</b><span>不少于 30 字的成因陈述</span></li>
+          <li><b>代码分析步骤</b><span>函数名 / 文件:行号 / 反汇编地址，不少于 2 步</span></li>
+          <li><b>代码位置</b><span>文件路径 + 片段或行号区间</span></li>
+          <li><b>复现步骤</b><span>编号命令，覆盖哈希校验→解包→资产证明→起目标→触发→回显</span></li>
+          <li><b>PoC / Exp 脚本</b><span>工作区相对路径，不得越界</span></li>
+          <li><b>证据文件</b><span>命令转录 / 日志 / 回显，至少 1 份真实存在</span></li>
+          <li><b>修复建议</b><span>与漏洞类型对应的可执行缓解</span></li>
+        </ol>
+        <div class="callout reveal">
+          <svg class="ic ic--sm" aria-hidden="true"><use href="#i-sparkle"/></svg>
+          <p>填齐之后的复现步骤，从空变成 <b>近千字</b>的命令级链路；「代码位置」也不再是一句"在某个服务里"，而是可核对的函数与指令序列。</p>
+        </div>
+      </div>
+      <div class="split__media">
+        <div class="figure reveal">
+          <div class="gate__head">
+            <span class="gate__icon"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg></span>
+            <h3>段落表是三处消费的单一事实源</h3>
+          </div>
+          <ul class="kv">
+            <li><span>引导提示词</span><span>下发哪一段、要求写多细，由段落表决定</span></li>
+            <li><span>提交校验</span><span>每段的必填字段与下限，由同一条目生成</span></li>
+            <li><span>报告章节</span><span>章节顺序与段落一一对应，材料齐即报告齐</span></li>
+          </ul>
+          <p class="gate__foot"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>三处读同一张表，所以不会出现"引导要的"和"报告里有的"对不齐。</p>
+        </div>
+        <div class="rejects reveal">
+          <div class="rejects__head">
+            <svg class="ic ic--sm" aria-hidden="true"><use href="#i-alert"/></svg>
+            <span>真实打回原因（一条都没加工）</span>
+          </div>
+          <ul>
+            <li><code>description</code> 不能为空且不少于 30 字（当前不足）</li>
+            <li><code>codeLocation</code> 必填，且需至少给出片段或行号区间</li>
+            <li><code>poc</code> 必须是工作区相对路径（不得为绝对路径或越界）</li>
+            <li><code>evidence</code> 至少需要 1 个有效的工作区相对路径</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 界面预览模拟 -->
+  <section class="section" id="ui">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>功能界面预览</p>
+        <h2>一个任务的完整生命周期，可以点着看</h2>
+        <p class="section__sub">
+          下面按产品界面结构还原了一份可交互模拟：浅色默认主题、顶部状态栏、四张侧栏卡、任务头、
+          六页签、右侧巡检栏与底栏。点击页签切换视图。
+        </p>
+        <p class="section__sub"><em>任务名、条目名与全部数字都是虚构示例</em>，本页面不展示任何真实设备信息或漏洞信息。</p>
+      </div>
+
+      <div class="prod reveal" id="prod">
+        <div class="prod__top">
+          <span class="prod__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="prod__brand"><b>FirmAudit2</b><em>固件漏洞审计平台</em></span>
+          <span class="prod__crumb">工作区 › <b>DEMO-BOX 固件审计</b></span>
+          <span class="prod__top-right">
+            <span class="pchip pchip--demo">示意模拟 · 数据虚构</span>
+            <span class="pchip"><i class="pled pled--ok"></i>后端</span>
+            <span class="pchip"><i class="pled pled--ok"></i>沙箱</span>
+            <span class="pstat">运行 <b>1/2</b></span>
+            <span class="pstat">Agent <b>活跃</b></span>
+            <span class="pstat">CPU <b>18%</b></span>
+            <span class="pstat">内存 <b>64%</b></span>
+          </span>
+        </div>
+        <div class="prod__main">
+          <aside class="prod__side">
+            <div class="pcard">
+              <button class="pbtn pbtn--primary" type="button"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg>创建固件审计</button>
+              <div class="pnav"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg>系统概况</div>
+              <div class="pnav is-active"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>全部任务<span class="pnav__n">1</span></div>
+              <div class="pnav"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>运行与排队<span class="pnav__n">1</span></div>
+            </div>
+            <div class="pcard">
+              <div class="pcard__h">最近任务</div>
+              <div class="ptask">
+                <b>DEMO-BOX_firmware_v1.0.zip</b>
+                <span><i class="pled pled--run"></i>执行中 · 沙箱会话 demo</span>
+              </div>
+            </div>
+            <div class="pcard">
+              <div class="pcard__h">资源</div>
+              <div class="pmet"><span>CPU 18%</span><i><b style="width:18%"></b></i></div>
+              <div class="pmet"><span>内存 64%</span><i><b style="width:64%"></b></i></div>
+              <div class="pmet"><span>磁盘 41%</span><i><b style="width:41%"></b></i></div>
+            </div>
+            <div class="pcard">
+              <div class="pcard__h">扩展</div>
+              <div class="pnav"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>工具中心</div>
+              <div class="pnav"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>安全策略</div>
+              <div class="pnav"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>模型用量</div>
+              <div class="pnav"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>关于</div>
+            </div>
+          </aside>
+
+          <div class="prod__work">
+            <header class="prod__task">
+              <span class="prod__task-icon"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg></span>
+              <div class="prod__task-meta">
+                <h4>DEMO-BOX 固件审计<span class="pbadge pbadge--run" id="prodStatus">执行中</span><span class="pbadge">引导 24/24 段</span></h4>
+                <p>task_demo_0001 · 队列位 1 · 会话静默阈值 30m · 单次调用阈值 15m</p>
+              </div>
+              <div class="prod__task-acts">
+                <button class="pbtn pbtn--sm" type="button" id="prodPause">暂停</button>
+                <button class="pbtn pbtn--sm pbtn--danger" type="button" id="prodStop">中止</button>
+                <button class="pbtn pbtn--sm" type="button">恢复审计</button>
+                <button class="pbtn pbtn--sm" type="button">关闭实例</button>
+                <button class="pbtn pbtn--sm" type="button">下载资料包</button>
+                <button class="pbtn pbtn--sm" type="button">切换模型</button>
+              </div>
+            </header>
+
+            <div class="prod__tabs" role="tablist" aria-label="任务视图切换">
+              <button role="tab" class="prod__tab" id="tab-prompt" aria-controls="panel-prompt" aria-selected="false" tabindex="-1" type="button">提示词</button>
+              <button role="tab" class="prod__tab" id="tab-map" aria-controls="panel-map" aria-selected="false" tabindex="-1" type="button">进展图谱</button>
+              <button role="tab" class="prod__tab" id="tab-events" aria-controls="panel-events" aria-selected="false" tabindex="-1" type="button">审计过程</button>
+              <button role="tab" class="prod__tab" id="tab-term" aria-controls="panel-term" aria-selected="false" tabindex="-1" type="button">终端</button>
+              <button role="tab" class="prod__tab" id="tab-files" aria-controls="panel-files" aria-selected="false" tabindex="-1" type="button">文件</button>
+              <button role="tab" class="prod__tab is-active" id="tab-vuln" aria-controls="panel-vuln" aria-selected="true" type="button">漏洞</button>
+              <span class="prod__live"><i class="pled pled--run"></i>实时</span>
+            </div>
+
+            <!-- 提示词 -->
+            <div class="prod__panel" role="tabpanel" id="panel-prompt" aria-labelledby="tab-prompt" tabindex="0" hidden>
+              <p class="phint">约束先写进提示词，再用回归测试锁住：改坏了会在测试里暴露，而不是在任务里。以下为节选。</p>
+              <div class="pprompt">
+                <h5>【非阻塞执行纪律】</h5>
+                <ol>
+                  <li>会打到目标或仿真栈上的命令必须显式 <code>timeout -s KILL N</code> 包裹（会吞 SIGTERM 的守护进程要用 <code>-s KILL</code>）。</li>
+                  <li>探测自带次数与超时：<code>ping -c 2 -W 2</code>、<code>nc -w 3</code>、<code>curl -m 5 --retry 0</code>，严禁裸 ping。</li>
+                  <li>长命令后台化 + 轮询日志，不在前台干等。</li>
+                  <li>收口前自查八段是否填齐：缺段落不得声明完成。</li>
+                </ol>
+                <h5>【平台看护 · 回合已中止】</h5>
+                <pre class="pterm">工具调用 bash 已连续 15m 没有任何输出回流，平台已中止当前回合，
+以免耗尽任务总时长（剩余预算 63m）。
+继续前必须改用非阻塞形态……请从中断点继续，不要原样重复刚才那条命令。</pre>
+                <h5>【复现步骤口径】</h5>
+                <p>编号命令按「哈希校验 → 解包 → 资产证明 → 起目标 → 触发 → 回显」排布，前两步之内必须出现版本信息，逐条能抄进终端。</p>
+              </div>
+            </div>
+
+            <!-- 进展图谱 -->
+            <div class="prod__panel" role="tabpanel" id="panel-map" aria-labelledby="tab-map" tabindex="0" hidden>
+              <p class="phint">进展图谱把任务拆成阶段与证据节点：任一阶段没有痕迹，收口门就不放行。</p>
+              <div class="pstage">
+                <i class="is-done"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>解包</i>
+                <svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg>
+                <i class="is-done"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>资产画像</i>
+                <svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg>
+                <i class="is-done"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>攻击面</i>
+                <svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg>
+                <i class="is-done"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>定位</i>
+                <svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg>
+                <i class="is-now"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-activity"/></svg>本地仿真</i>
+                <svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg>
+                <i><svg class="ic ic--sm" aria-hidden="true"><use href="#i-list"/></svg>引导填充</i>
+                <svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg>
+                <i><svg class="ic ic--sm" aria-hidden="true"><use href="#i-truck"/></svg>交付门</i>
+              </div>
+              <div class="ptiles">
+                <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-db"/></svg>证据节点</span><b>27 <em>个</em></b></div>
+                <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-target"/></svg>候选漏洞</span><b>3 <em>条</em></b></div>
+                <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-layers"/></svg>段落入库</span><b>24/24 <em>段</em></b></div>
+                <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-alert"/></svg>交付缺口</span><b>4 <em>项</em></b></div>
+                <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-activity"/></svg>工具调用</span><b>112 <em>次</em></b></div>
+                <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-refresh"/></svg>判丢重投</span><b>1 <em>次</em></b></div>
+              </div>
+              <p class="pnote"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-alert"/></svg>图谱只登记文件里读得出来的痕迹；模型自称"已完成仿真"不会点亮任何节点。</p>
+            </div>
+
+            <!-- 审计过程 -->
+            <div class="prod__panel" role="tabpanel" id="panel-events" aria-labelledby="tab-events" tabindex="0" hidden>
+              <p class="phint">一切皆事件：投递、打回、判丢、暂停、恢复全部落库，可逐条回放。</p>
+              <ol class="ptl">
+                <li><i class="is-ok"></i><time>01:20:14</time><b>audit.guide.sent</b><p>第 1/8 段引导（漏洞信息）已投递，队首 VULN-A（示意）</p></li>
+                <li><i></i><time>01:21:02</time><b>audit.guide.rejected</b><p>content.steps 缺少字段，原因已回注下一次引导（重试 1/3）</p></li>
+                <li><i class="is-ok"></i><time>01:22:47</time><b>audit.section.accepted</b><p>段落已入库（进度 3/8），回执写入 receipts/，等待平台下发下一段引导</p></li>
+                <li><i class="is-warn"></i><time>08:13:54</time><b>audit.guide.lost</b><p>第 3/8 段引导（代码分析步骤）投递后 4m0s 内没有任何回应，判定为未送达；已重投并转长退避 attempts=1 backoff=600s</p></li>
+                <li><i class="is-warn"></i><time>07:12:57</time><b>task.paused</b><p>Agent 已结束，但收口门未通过，任务未判定为完成，已转入暂停中（待补清单 3 条）</p></li>
+                <li><i class="is-ok"></i><time>08:13:51</time><b>task.resumed</b><p>已使用原容器与原会话继续审计</p></li>
+                <li><i class="is-bad"></i><time>08:31:09</time><b>watchdog.abort</b><p>工具调用 bash 已连续 15m 没有任何输出回流，平台已中止当前回合（剩余预算 63m），被中止的命令：<code>ping 1 -c 4 -s 32 -W 4</code>（示例参数）</p></li>
+              </ol>
+            </div>
+
+            <!-- 终端 -->
+            <div class="prod__panel" role="tabpanel" id="panel-term" aria-labelledby="tab-term" tabindex="0" hidden>
+              <p class="phint">Agent 在会话沙箱里的命令级留痕：输出回流即活性证据，看护据此判断是否卡死。以下转录为虚构示例。</p>
+              <pre class="pterm"><span class="pc-cmd">$ sha256sum ./DEMO-BOX_firmware_v1.0.zip</span>
+<span class="pc-out">3f2a…c81  DEMO-BOX_firmware_v1.0.zip   ← 与任务登记的哈希一致，解包前先留痕</span>
+
+<span class="pc-cmd">$ timeout -s KILL 300 binwalk -e ./DEMO-BOX_firmware_v1.0.zip</span>
+<span class="pc-out">DECIMAL DESCRIPTION … → 已解出 rootfs/</span>
+
+<span class="pc-cmd">$ cat ./_DEMO-BOX_firmware_v1.0.zip.extracted/rootfs/etc/demo_version</span>
+<span class="pc-hl">DEMO-BOX firmware v1.0 (build 00000000)   ← 资产证明：版本信息出现在起目标之前</span>
+
+<span class="pc-cmd">$ timeout -s KILL 600 ./run_emulation.sh</span>
+<span class="pc-out">[emulation] starting demo target … done
+demo_service        Listening on 0.0.0.0:8080</span>
+
+<span class="pc-cmd">$ curl -s -m 5 http://127.0.0.1:8080/api/ping -d 'addr=127.0.0.1&amp;count=1'</span>
+<span class="pc-ok">PING 127.0.0.1: 1 packets  ← 运行时回显：仿真验证硬门只认这一类痕迹</span></pre>
+            </div>
+
+            <!-- 文件 -->
+            <div class="prod__panel" role="tabpanel" id="panel-files" aria-labelledby="tab-files" tabindex="0" hidden>
+              <p class="phint">自包含平铺总包：一漏洞一档，材料全部在包根，评审者不需要理解目录结构。文件名与大小均为虚构示例。</p>
+              <table class="pftable">
+                <thead><tr><th>文件</th><th>作用</th><th class="num">大小</th></tr></thead>
+                <tbody>
+                  <tr><td>DEMO-BOX_firmware_v1.0.zip</td><td>固件原件，保留上传时文件名随包</td><td class="num">10.1 MB</td></tr>
+                  <tr><td>report.md</td><td>报告唯一正文（章节与段落表同源）</td><td class="num">7.7 KB</td></tr>
+                  <tr><td>report.docx</td><td>由 report.md 转换的提交稿</td><td class="num">14.9 KB</td></tr>
+                  <tr><td>poc_demo.py</td><td>PoC 脚本，与固件包同目录自定位</td><td class="num">9.6 KB</td></tr>
+                  <tr><td>run_emulation.sh</td><td>仿真启动脚本</td><td class="num">538 B</td></tr>
+                  <tr><td>extract_firmware.sh</td><td>解包脚本</td><td class="num">989 B</td></tr>
+                  <tr><td>emulation.transcript</td><td>命令转录（运行时证据）</td><td class="num">994 B</td></tr>
+                  <tr><td>version-evidence.transcript</td><td>资产证明：版本信息回显</td><td class="num">472 B</td></tr>
+                  <tr><td>metadata.json</td><td>交付索引与缺口清单</td><td class="num">2.1 KB</td></tr>
+                </tbody>
+              </table>
+              <p class="pnote"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-alert"/></svg>缺材料比缺报告更隐蔽：该进包却没进的材料与原因会一并登记，不会向评审者谎报"固件没进包"。</p>
+            </div>
+
+            <!-- 漏洞：八段引导 -->
+            <div class="prod__panel is-active" role="tabpanel" id="panel-vuln" aria-labelledby="tab-vuln" tabindex="0">
+              <p class="phint">共 3 条示例漏洞（已确认 1 条、待填 2 条）。八段资料填齐、过本地仿真验证与交付报告复核后，才允许打包下载该漏洞资料夹 ZIP。条目名与进度均为虚构。</p>
+              <article class="pvuln">
+                <header class="pvuln__head">
+                  <h5>VULN-A（示意）：管理接口参数被拼接进系统命令</h5>
+                  <span class="pbadge pbadge--bad">高危</span>
+                  <span class="pbadge pbadge--warn">交付缺口 4 项</span>
+                  <span class="pbadge">资料 5/8</span>
+                </header>
+                <div class="pbar" aria-hidden="true"><i style="width:62.5%"></i></div>
+                <p class="pvuln__path">vulns/VULN-A/</p>
+                <div class="pvuln__gap">
+                  <b>交付缺口</b>
+                  <ul>
+                    <li>本地仿真验证：证据里看不到目标被起来的痕迹（需含启动输出或服务 Listening 回显）</li>
+                    <li>PoC / Exp 脚本：给出的路径越界，必须是工作区相对路径</li>
+                    <li>证据文件：至少 1 份真实存在的命令转录</li>
+                    <li>修复建议：需与漏洞类型对应且可执行</li>
+                  </ul>
+                  <p class="pvuln__now">当前待填段落「PoC / Exp 脚本」（5/8），等待 Agent 按平台引导提交<br />最近一次打回：content.path 不得为绝对路径</p>
+                </div>
+                <div class="pfiles">
+                  <span class="pfile"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>report.md</span>
+                  <span class="pfile"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>extract_firmware.sh</span>
+                  <span class="pfile"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>poc_demo.py</span>
+                  <span class="pfile"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>run_emulation.sh</span>
+                  <span class="pfile"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>version-evidence.transcript</span>
+                </div>
+                <footer class="pvuln__foot">
+                  <button class="pbtn pbtn--sm" type="button">人工补填</button>
+                  <button class="pbtn pbtn--sm" type="button">确认漏洞</button>
+                  <button class="pbtn pbtn--sm pbtn--danger" type="button">驳回</button>
+                  <button class="pbtn pbtn--sm" type="button">打包下载 ZIP</button>
+                </footer>
+              </article>
+              <article class="pvuln">
+                <header class="pvuln__head">
+                  <h5>VULN-B（示意）：配置文件中存在明文口令</h5>
+                  <span class="pbadge pbadge--bad">高危</span>
+                  <span class="pbadge pbadge--violet">静态即可确证 · 仿真豁免</span>
+                  <span class="pbadge">资料 0/8</span>
+                </header>
+                <p class="pvuln__gap">交付缺口 7 项 · 当前待填段落「漏洞信息」（0/8），等待 Agent 按平台引导串行推进</p>
+              </article>
+              <article class="pvuln">
+                <header class="pvuln__head">
+                  <h5>VULN-C（示意）：调试接口未鉴权</h5>
+                  <span class="pbadge pbadge--ok">已过四道门</span>
+                  <span class="pbadge">资料 8/8</span>
+                </header>
+                <p class="pvuln__gap">复核通过：正文引用的脚本与证据段列出的文件一致，可打包交付</p>
+                <footer class="pvuln__foot">
+                  <button class="pbtn pbtn--sm" type="button">查看报告</button>
+                  <button class="pbtn pbtn--sm" type="button">打包下载 ZIP</button>
+                </footer>
+              </article>
+            </div>
+          </div>
+
+          <aside class="prod__rail">
+            <div class="prail__sec">
+              <h5><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg>Flag 候选与审核<span>3</span></h5>
+              <div class="pkv">
+                <span>VULN-A</span><b>待补材料</b>
+                <span>VULN-B</span><b>排队待填</b>
+                <span>VULN-C</span><b class="is-ok">已确认可交付</b>
+              </div>
+            </div>
+            <div class="prail__sec">
+              <h5><svg class="ic" aria-hidden="true"><use href="#i-activity"/></svg>黑板<span>示意</span></h5>
+              <div class="pkv">
+                <span>阶段</span><b>本地仿真</b>
+                <span>攻击面</span><b>2 个服务</b>
+                <span>假设</span><b>3 条 / 已证否 1</b>
+              </div>
+            </div>
+            <div class="prail__sec">
+              <h5><svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg>自动反思<span>上轮</span></h5>
+              <div class="pkv">
+                <span>结论</span><b class="is-ok">无漂移</b>
+                <span>缺口</span><b>4 项</b>
+                <span>重开</span><b>0 / 2 次上限</b>
+              </div>
+            </div>
+            <div class="prail__sec">
+              <h5><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg>模型<span>示例</span></h5>
+              <div class="pkv">
+                <span>提供商</span><b>自备 API（平台不内置）</b>
+                <span>模型</span><b>demo-model</b>
+                <span>连接</span><b class="is-ok">正常</b>
+              </div>
+            </div>
+            <div class="prail__sec">
+              <h5><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>沙箱<span>会话级</span></h5>
+              <div class="pkv">
+                <span>环境</span><b>WSL2 独立发行版</b>
+                <span>运行时</span><b>demo-sandbox</b>
+                <span>会话</span><b>overlay 临时根</b>
+                <span>工作区</span><b>/workspace/demo</b>
+              </div>
+            </div>
+            <div class="prail__sec">
+              <h5><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>事件日志<span>尾部</span></h5>
+              <div class="pkv">
+                <span>08:31:09</span><b>watchdog.abort</b>
+                <span>08:13:51</span><b>task.resumed</b>
+                <span>08:13:54</span><b>audit.guide.lost</b>
+              </div>
+            </div>
+          </aside>
+        </div>
+        <footer class="prod__foot">
+          <span>Wails v3 · Go 后端 <b>v1.0.1</b> · Pi RPC · 版本 <b>V1.0.1</b></span>
+          <span class="prod__foot-right">
+            <span><i class="pled pled--ok"></i>WSL2 沙箱就绪</span>
+            <span>daemon 已连接</span>
+            <span>本机控制平面</span>
+            <span aria-hidden="true"><svg class="ic ic--sm"><use href="#i-lock"/></svg></span>
+          </span>
+        </footer>
+      </div>
+      <p class="prod__mock-tag">
+        <svg class="ic ic--sm" aria-hidden="true"><use href="#i-alert"/></svg>
+        界面结构模拟，数据全部虚构：不含真实设备、固件、漏洞或交付材料；暂停 / 中止按钮只切换演示状态，不连接任何后端。
+      </p>
+    </div>
+  </section>
+
+  <!-- 实测数据 -->
+  <section class="section section--alt" id="data">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-chart"/></svg>实测数据</p>
+        <h2>同一套约束，四种做法的结局对比</h2>
+        <p class="section__sub">每行都是平台真实跑出来的任务事件；涉及的固件与条目名按绝密口径不予公开，此处只留计数与结局。</p>
+      </div>
+      <div class="table-wrap reveal">
+        <table class="data">
+          <thead>
+            <tr><th>时间</th><th>引导方式</th><th class="num">段落入库</th><th class="num">打回</th><th>结局</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>9/19 14:17</td><td>5 个漏洞并行下发首段</td><td class="num">0</td><td class="num">0</td>
+              <td><span class="verdict verdict--bad">引导发完就没下文，5 条全部无回应</span></td>
+            </tr>
+            <tr>
+              <td>9/20 06:33</td><td>4 个漏洞并行，已加校验回环</td><td class="num">4（全是首段）</td><td class="num">12</td>
+              <td><span class="verdict verdict--bad">4 条一起卡在第 2 段（复现步骤），任务最终失败</span></td>
+            </tr>
+            <tr>
+              <td>9/21 01:20</td><td>单漏洞串行推进</td><td class="num">8/8</td><td class="num">4</td>
+              <td><span class="verdict verdict--ok">6 分 48 秒填齐，全部自愈</span></td>
+            </tr>
+            <tr>
+              <td>9/21 08:14</td><td>串行 + 8 段 + 回执 + 送达判定</td><td class="num">24/24（3 个漏洞）</td><td class="num">7 + 1 次判丢重投</td>
+              <td><span class="verdict verdict--ok">恢复后队首漏洞 6 分填完 7 段，第二、三个各用 4 分 40 秒、3 分 36 秒</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="stats reveal">
+        <div class="stat">
+          <b>419</b><span>次已完成工具调用参与看护阈值标定</span>
+          <p>最长两次为 16.2 与 15.6 分钟，内容都是全盘扫描；15 分钟静默阈值由此而来，再往上就该被拦。</p>
+        </div>
+        <div class="stat">
+          <b>12 → 8</b><span>次打回来自同一条判据太挑剔</span>
+          <p>模型爱把步骤写成数组，校验只认字符串。折中后两种写法都收，数组自动折叠成编号行——表面看像模型不配合，其实是判据问题。</p>
+        </div>
+        <div class="stat">
+          <b>1h44m</b><span>被一条裸 ping 吃掉的预算</span>
+          <p>参数被目标拼成 <code>ping 1 -c 4 …</code>，对面不回包，进程挂住 1 小时 44 分钟，期间已产出的证据全部作废——任务级超时挡不住，因为它的粒度是整个任务。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 架构与运行环境 -->
+  <section class="section" id="arch">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-network"/></svg>能力全景与运行环境</p>
+        <h2>从上传固件到出包，中间没有一步是黑盒</h2>
+        <p class="section__sub">点击放大查看：能力全景图与任务流程图。</p>
+      </div>
+      <div class="figures">
+        <figure class="shot reveal">
+          <button class="shot-btn" type="button" data-full="assets/img/map-capability.webp" data-alt="FirmAudit2 能力全景脑图">
+            <img src="assets/img/map-capability.webp" alt="FirmAudit2 能力全景脑图：质量门、稳定性、交付物、运行环境、审计执行" loading="lazy" width="1680" height="814" />
+          </button>
+          <figcaption>能力全景：质量门（本文重点）、稳定性、交付物、运行环境、审计执行</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <button class="shot-btn" type="button" data-full="assets/img/map-flow.webp" data-alt="FirmAudit2 任务流程图">
+            <img src="assets/img/map-flow.webp" alt="FirmAudit2 任务流程图：上传固件到人工确认与出包的完整判定路径" loading="lazy" width="1680" height="874" />
+          </button>
+          <figcaption>任务流程：段落校验 → 八段填完 → 复核门 → 交付门 → 人工确认出包</figcaption>
+        </figure>
+      </div>
+
+      <div class="env">
+        <article class="env__card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg></span>
+          <h3>会话级 overlay 临时根</h3>
+          <p>发行版 rootfs 被所有任务共享且长期存活，Agent 的绝对路径写入会永久污染容器。现在每次会话挂自己的上层，回合结束随命名空间销毁；<code>/workspace</code> 绑定失败直接退出，绝不静默降级——产出一堆、平台一条收不到的逃逸我踩过。</p>
+        </article>
+        <article class="env__card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></span>
+          <h3>宿主整盘不进沙箱</h3>
+          <p>会执行任意命令的沙箱不暴露宿主盘、密钥与任务数据；技能与 Agent 资产以真实副本预置进发行版本体，环境指纹保证幂等与可复现。</p>
+        </article>
+        <article class="env__card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-db"/></svg></span>
+          <h3>离线工具链与镜像加速</h3>
+          <p>解包、仿真、逆向、转换依赖随发行版一次性部署，vendor 包可完全离线；APT / pip / Node / npm 默认走国内源，受限网络下装完即用。</p>
+        </article>
+        <article class="env__card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg></span>
+          <h3>看护与断点续传</h3>
+          <p>单次工具调用静默 15 分钟、会话静默 30 分钟两级阈值；处置分级为中止回合 → 回注纪律 → 提前判失败。任务状态落盘，程序重启不打断正在跑的审计。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 交付形态 -->
+  <section class="section section--alt" id="delivery">
+    <div class="container split split--rev">
+      <div class="split__text">
+        <p class="chip chip--eyebrow reveal"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-truck"/></svg>交付形态</p>
+        <h2 class="reveal">自包含平铺总包，评审者不需要理解目录结构</h2>
+        <ul class="ticks reveal">
+          <li><b>一漏洞一档</b>：材料全部平铺在包根，报告章节与段落表同源，要求填的就是报告里有的。</li>
+          <li><b>固件保留原名随包</b>：脚本自己定位同目录的固件包，复现步骤里的 <code>./&lt;固件包名&gt;</code> 才指得通；副本取不到就显式失败。</li>
+          <li><b>复现步骤到命令级</b>：从校验哈希、出资产证明、起仿真到发请求，逐条能抄进终端。</li>
+          <li><b>内容哈希去重</b>：同名不同来源的等价材料不会变成包里的两份副本；缺材料连同原因一起登记。</li>
+          <li><b>报告 md 为唯一正文</b>：docx 由 pandoc 从它转换，不存在两份正文互相漂移。</li>
+        </ul>
+      </div>
+      <figure class="shot reveal">
+        <pre class="quote">VULN-A/                                ← 一漏洞一档，材料全部平铺在包根
+├── DEMO-BOX_firmware_v1.0.zip         固件原件（保留上传时原名）
+├── report.md                          报告唯一正文，章节 = 8 个段落
+├── report.docx                        pandoc 从 report.md 转换的提交稿
+├── poc_demo.py                        PoC 脚本，自定位同目录固件包
+├── extract_firmware.sh                解包脚本
+├── run_emulation.sh                   仿真启动脚本
+├── emulation.transcript               命令转录：目标起来 + 回显
+├── version-evidence.transcript        资产证明：版本信息回显
+└── metadata.json                      交付索引 + 缺口清单（缺什么、为什么缺）
+
+文件名与内容均为虚构示例：真实任务的固件与漏洞材料不进入任何对外页面。</pre>
+        <figcaption>交付总包平铺在包根，评审者拿到就能按编号步骤抄进终端。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 获取 -->
+  <section class="section get" id="get">
+    <div class="hero__grid" aria-hidden="true"></div>
+    <div class="container get__inner reveal">
+      <h2>把下一个固件漏洞，交给流水线</h2>
+      <p>FirmAudit2 为闭源商业软件，采用设备绑定的离线授权（单设备永久授权）。使用前请确认前置环境就绪。</p>
+      <ul class="reqs">
+        <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>Windows 11 x64，已启用 WSL2</li>
+        <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-db"/></svg>磁盘建议 ≥ 40GB 可用</li>
+        <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-network"/></svg>首次部署工具链需联网</li>
+        <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-key"/></svg>大模型 API 自备，平台不内置任何模型额度</li>
+      </ul>
+      <div class="get__actions">
+        <a class="btn btn--primary" href="mailto:contact@example.com">
+          <svg class="ic ic--sm" aria-hidden="true"><use href="#i-mail"/></svg>联系获取授权
+        </a>
+        <a class="btn btn--ghost" href="https://github.com/JiuZero/FirmAudit2" target="_blank" rel="noopener">
+          <svg class="ic ic--sm ic--fill" aria-hidden="true"><use href="#i-github"/></svg>GitHub 仓库
+        </a>
+      </div>
+      <p class="get__note">联系邮箱为占位，请替换为真实地址后再对外发布。</p>
+    </div>
+  </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <img src="assets/img/logo.png" alt="" />
+        <span>FirmAudit2</span>
+        <span class="footer__ver">V1.0.1</span>
+      </div>
+      <p class="footer__credit">
+        前端界面基于上游开源项目 <b>CTF-BTFly</b>（已获得作者授权用于闭源商用），在此致谢。
+      </p>
+      <p class="footer__copy">© 2026 FirmAudit2 · 保留所有权利。本仓库仅含宣传站点与原创概念图，不包含任何产品源代码、真实设备信息或漏洞信息。</p>
+    </div>
+  </footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="截图放大预览" hidden>
+    <button class="lightbox__close" type="button" id="lightboxClose" aria-label="关闭预览">
+      <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+    </button>
+    <img src="" alt="" id="lightboxImg" />
+  </div>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

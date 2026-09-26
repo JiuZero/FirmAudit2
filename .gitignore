@@ -1,0 +1,12 @@
+# 系统与编辑器杂项
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# 本地预览/构建产物（本站点无需构建，仅防御性忽略）
+node_modules/
+dist/
+.vite/
+*.log
