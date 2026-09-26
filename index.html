@@ -94,39 +94,16 @@
         </dl>
       </div>
       <figure class="hero__shot reveal">
-        <div class="prod prod--mini" role="img" aria-label="FirmAudit2 系统概况界面结构示意，数据为虚构示例">
-          <div class="prod__top">
-            <span class="prod__dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="prod__brand"><b>FirmAudit2</b><em>固件漏洞审计平台</em></span>
-            <span class="prod__crumb">工作区 › <b>系统概况</b></span>
-            <span class="prod__top-right">
-              <span class="pchip pchip--demo">示意</span>
-              <span class="pchip"><i class="pled pled--ok"></i>后端</span>
-              <span class="pchip"><i class="pled pled--ok"></i>沙箱</span>
-            </span>
-          </div>
-          <div class="prod__mini-body">
-            <div class="ptiles">
-              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-activity"/></svg>运行中任务</span><b>1 <em>/ 2 配额</em></b></div>
-              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-key"/></svg>模型连接</span><b>已配置 <em>示例网关</em></b></div>
-              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-box"/></svg>沙箱运行时</span><b>wsl2 <em>独立发行版</em></b></div>
-              <div class="ptile"><span><svg class="ic ic--sm" aria-hidden="true"><use href="#i-shield"/></svg>隔离状态</span><b>overlay <em>会话临时根</em></b></div>
-            </div>
-            <div class="prail__sec">
-              <h5><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>本机资源<span>示意</span></h5>
-              <div class="pmet"><span>CPU 18%</span><i><b style="width:18%"></b></i></div>
-              <div class="pmet"><span>内存 64%</span><i><b style="width:64%"></b></i></div>
-              <div class="pmet"><span>磁盘 41%</span><i><b style="width:41%"></b></i></div>
-            </div>
-          </div>
-          <div class="prod__foot">
-            <span><i class="pled pled--ok"></i>WSL2 沙箱就绪 · daemon 已连接 · 本机控制平面</span>
-          </div>
-        </div>
-        <figcaption class="hero__caption">
+        <button class="shot-btn hero__zoom" type="button" data-full="assets/img/shot-overview.webp" data-alt="FirmAudit2 系统概况真实界面（敏感字段已打码）">
+          <img class="hero__img" src="assets/img/shot-overview.webp" width="1600" height="1011"
+               alt="FirmAudit2 系统概况真实界面：左侧任务与工具导航，右侧沙箱环境、宿主 MCP 工具、离线任务、执行中/排队中/运行中、沙箱运行时与反思沉淀状态卡，下方模型连接、执行链路与隔离状态" />
+        </button>
+        <figcaption class="hero__caption hero__caption--shot">真实界面截图（系统概况）。任务名、模型网关与本机资源等字段已打码。
+          <span class="hero__chips">
           <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>Windows 11 桌面端</span>
           <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-network"/></svg>WSL2 独立发行版</span>
           <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-db"/></svg>事件全量落库</span>
+          </span>
         </figcaption>
       </figure>
     </div>

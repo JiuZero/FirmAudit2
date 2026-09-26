@@ -117,7 +117,9 @@ em { font-style: normal; color: var(--cyan); }
 .hero__stats dt .ic { stroke: var(--cyan); }
 .hero__stats dd { font-size: 12.5px; color: var(--dim); }
 .hero__shot { margin: 0; }
-.hero__caption { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.hero__img { width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line-2); box-shadow: 0 40px 90px -44px rgba(0, 0, 0, 0.95); }
+.hero__caption { margin-top: 14px; font-size: 12.5px; color: var(--dim); }
+.hero__chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 
 /* ---------- 按钮 ---------- */
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 999px; font-weight: 600; font-size: 15px; border: 1px solid transparent; transition: transform 0.18s, box-shadow 0.18s, background 0.2s, border-color 0.2s; }
@@ -225,14 +227,6 @@ em { font-style: normal; color: var(--cyan); }
   box-shadow: 0 40px 88px -34px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(56, 189, 248, 0.1);
 }
 .prod .ic { stroke-width: 1.9; }
-.prod--mini { font-size: 12px; border-radius: var(--r-md); }
-.prod--mini .prod__top { min-height: 42px; padding: 5px 12px; }
-.prod--mini .prod__brand b { font-size: 15px; }
-.prod--mini .ptile { padding: 8px 10px; }
-.prod--mini .ptile b { font-size: 14px; }
-.prod--mini .ptiles { grid-template-columns: repeat(2, 1fr); }
-.prod__mini-body { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 12px; padding: 14px; align-items: start; }
-.prod__mini-body .prail__sec { background: var(--p-panel-2); border: 1px solid var(--p-line); border-radius: 11px; padding: 10px; }
 
 .prod__top { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 14px; background: var(--p-panel); border-bottom: 1px solid var(--p-line); flex-wrap: wrap; }
 .prod__dots { display: flex; gap: 6px; flex: none; }
@@ -459,7 +453,6 @@ em { font-style: normal; color: var(--cyan); }
   .layers, .stats { grid-template-columns: 1fr; }
   .prod__main { grid-template-columns: 196px minmax(0, 1fr); }
   .prod__rail { display: none; }
-  .prod__mini-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 900px) {
   .cards, .gates, .figures, .env, .split, .split--rev { grid-template-columns: 1fr; }
