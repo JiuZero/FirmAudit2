@@ -3,8 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FirmAudit2 · 让 Agent 挖到的每一个固件漏洞都可核对</title>
-  <meta name="description" content="FirmAudit2 是 AI 驱动的固件漏洞审计平台：会话级沙箱隔离、八段引导式登记、四道结果门、命令级复现验证，直至产出可提交的 CNVD 交付总包。" />
+  <title>FirmAudit2 · AI 自主固件审计与可验证交付</title>
+  <meta name="description" content="FirmAudit2 是 AI 驱动的固件漏洞审计平台：自主视频复现、任务级仿真策略、执行行级别归属、网关上下文压缩、回合异常自救、YAML 门阀与四道结果门，直至产出可提交的 CNVD 交付总包。" />
+  <meta name="keywords" content="固件安全, IoT 漏洞, 二进制分析, 逆向工程, AI 审计, 自主视频复现, WSL2 沙箱, CNVD" />
+  <link rel="canonical" href="https://jiuzero.github.io/FirmAudit2/" />
+
+  <!-- Open Graph / Social Cards -->
+  <meta property="og:title" content="FirmAudit2 · AI 自主固件审计与可验证交付" />
+  <meta property="og:description" content="自主视频复现、任务级仿真策略、上下文压缩、YAML 门阀与四道结果门，把固件漏洞从发现一路送到可提交的 CNVD 资料包。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://jiuzero.github.io/FirmAudit2/" />
+  <meta property="og:image" content="https://jiuzero.github.io/FirmAudit2/assets/img/share-card.webp" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:site_name" content="FirmAudit2" />
+
+  <!-- WeChat Card -->
+  <meta name="wb:webmasterid" content="9e5c0a1b4f8d7c3e" />
+
+  <!-- Twitter Card (fallback) -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="FirmAudit2 · AI 自主固件审计与可验证交付" />
+  <meta name="twitter:description" content="自主视频复现、仿真策略编排、上下文压缩、YAML 门阀与四道结果门，直通 CNVD 交付。" />
+  <meta name="twitter:image" content="https://jiuzero.github.io/FirmAudit2/assets/img/share-card.webp" />
+  <meta name="theme-color" content="#05070e" />
   <link rel="icon" type="image/png" href="assets/img/favicon.png" />
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
@@ -51,6 +74,7 @@
       </a>
       <nav class="nav__links" id="navLinks">
         <a href="#why">问题</a>
+        <a href="#features">关键设计</a>
         <a href="#design">约束设计</a>
         <a href="#gates">质量门</a>
         <a href="#ui">界面预览</a>
@@ -73,32 +97,33 @@
       <div class="hero__copy">
         <p class="chip chip--eyebrow reveal">
           <svg class="ic ic--sm" aria-hidden="true"><use href="#i-sparkle"/></svg>
-          AI Agent × 固件安全审计
+          AI Agent × 固件安全审计 · 自主视频复现
         </p>
         <h1 class="reveal">让 Agent 的每个结论<br /><span class="grad">可回放、可校验、可交付</span></h1>
         <p class="lead reveal">
-          工具从来不缺，缺的是工具之间那段人肉路，以及"它说有洞"到"评审者认这个洞"之间的距离。
-          FirmAudit2 把<em>结论可信</em>本身当成工程问题来做：过程可回放、字段可校验、产物可核对。
+          从自主视频录制、任务级仿真策略，到网关上下文压缩与 YAML 门阀，FirmAudit2 把<em>结论可信</em>本身当成工程问题来做：
+          过程可回放、字段可校验、产物可核对，最后落到可提交的 CNVD 资料包。
         </p>
         <div class="hero__actions reveal">
           <a class="btn btn--primary" href="#ui">
             看界面预览
             <svg class="ic ic--sm" aria-hidden="true"><use href="#i-arrow"/></svg>
           </a>
-          <a class="btn btn--ghost" href="#gates">四道质量门怎么拦</a>
+          <a class="btn btn--ghost" href="#features">七项关键设计</a>
         </div>
         <dl class="hero__stats reveal">
           <div><dt><svg class="ic ic--sm" aria-hidden="true"><use href="#i-layers"/></svg>8 段</dt><dd>漏洞资料分段引导填充</dd></div>
           <div><dt><svg class="ic ic--sm" aria-hidden="true"><use href="#i-shield"/></svg>4 道</dt><dd>收口 / 仿真 / 资产 / 复核门</dd></div>
+          <div><dt><svg class="ic ic--sm" aria-hidden="true"><use href="#i-sparkle"/></svg>7 项</dt><dd>自主视频与自愈式关键设计</dd></div>
           <div><dt><svg class="ic ic--sm" aria-hidden="true"><use href="#i-timer"/></svg>15 min</dt><dd>单次工具调用静默阈值</dd></div>
         </dl>
       </div>
       <figure class="hero__shot reveal">
-        <button class="shot-btn hero__zoom" type="button" data-full="assets/img/shot-overview.webp" data-alt="FirmAudit2 系统概况真实界面（敏感字段已打码）">
-          <img class="hero__img" src="assets/img/shot-overview.webp" width="1600" height="1011"
-               alt="FirmAudit2 系统概况真实界面：左侧任务与工具导航，右侧沙箱环境、宿主 MCP 工具、离线任务、执行中/排队中/运行中、沙箱运行时与反思沉淀状态卡，下方模型连接、执行链路与隔离状态" />
+        <button class="shot-btn hero__zoom" type="button" data-full="assets/img/shot-emulate.webp" data-alt="FirmAudit2 独立固件仿真工作台（演示数据）">
+          <img class="hero__img" src="assets/img/shot-emulate.webp" width="1440" height="875"
+               alt="FirmAudit2 固件仿真工作台：左侧固件列表，右侧显示启动命令、关闭命令、AI 分析摘要与启动服务按钮" />
         </button>
-        <figcaption class="hero__caption hero__caption--shot">真实界面截图（系统概况）。任务名、模型网关与本机资源等字段已打码。
+        <figcaption class="hero__caption hero__caption--shot">独立固件仿真（隔离演示数据）：上传固件后由模型分析架构与启动方式，生成启停命令并探活。
           <span class="hero__chips">
           <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>Windows 11 桌面端</span>
           <span class="chip"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-network"/></svg>WSL2 独立发行版</span>
@@ -138,6 +163,60 @@
           <h3>挖到洞，交付再熬一晚</h3>
           <p>手抄复现步骤、整理证据、套 CNVD 模板，一晚上又没了。材料齐不齐，全靠提交前自查。</p>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 七项关键设计 -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-sparkle"/></svg>近期关键设计</p>
+        <h2>七项设计，把 Agent 的自由度关进可验证的流程</h2>
+        <p class="section__sub">
+          它们不改变审计目标，只改变平台约束 Agent 的方式：让仿真结论有证据、长会话能续跑、判定逻辑可编排、误报能及时撤回。
+        </p>
+      </div>
+      <div class="cards">
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-monitor"/></svg></span>
+          <h3>AI 自主视频录制</h3>
+          <p>两轮 validate / record 后，AI 自己跑通复现、录制容器终端并截取步骤图；视频、图注、关键时间点随资料包回填，录前录后都有亮度复核。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg></span>
+          <h3>任务级仿真策略</h3>
+          <p>整机、单服务、单函数按任务排序，跳级必须留下前序失败证据，网络服务类漏洞必须经过 127.0.0.1 运行时请求验证。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg></span>
+          <h3>级别归属只认执行行</h3>
+          <p>命令、工具调用和运行结果才算执行；说明、降级、括号注释不参与归属。成功取最高级别，失败转录与资料目录留痕也算尝试。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg></span>
+          <h3>网关上下文压缩</h3>
+          <p>请求越限时在网关裁剪早期会话，保留 system 与工具调用原子组；被压缩的历史用一条提示说明，长任务不再因 413 直接暂停。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg></span>
+          <h3>回合异常自救</h3>
+          <p>截断、纯文本、空响应先投对应纠偏提示；额度按进度签名重置，有推进就继续，连续无进展才暂停并写明底层形态。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span>
+          <h3>YAML 门阀</h3>
+          <p>复核、收口、填充、仿真门的判定链可用 YAML 编排；节点类型白名单、关键参数锁定、严格解析与表达式 fail-closed，定制不等于放水。</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></span>
+          <h3>误报撤回与勘误重登</h3>
+          <p>AI 可撤回自己发现的误报或登记勘误，平台清理引导队列与存量产物；人工确认过的漏洞不可撤回，终审权仍在人这边。</p>
+        </article>
+      </div>
+      <div class="callout reveal">
+        <svg class="ic ic--sm" aria-hidden="true"><use href="#i-check"/></svg>
+        <p>七项设计没有改变四道结果门的口径：<b>收口、仿真、资产、复核</b>仍然逐条对账。<a href="#gates">看四道门怎么拦</a></p>
       </div>
     </div>
   </section>
@@ -314,11 +393,11 @@
   <section class="section" id="ui">
     <div class="container">
       <div class="section__head reveal">
-        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>功能界面预览</p>
-        <h2>一个任务的完整生命周期，都在这套界面里</h2>
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>审计流程界面</p>
+        <h2>从八段资料到交付缺口，都在同一套界面里</h2>
         <p class="section__sub">
-          三张真实界面截图：<b>漏洞</b>页签看八段引导与交付缺口，<b>审计过程</b>页签看事件时间线与打回原因，
-          <b>终端</b>页签看会话沙箱里的命令留痕。点击任意一张可以放大看细节。
+          三张审计流程截图：<b>漏洞</b>页签看八段引导与交付缺口，<b>审计过程</b>页签看事件时间线与打回原因，
+          <b>终端</b>页签看会话沙箱里的命令留痕。点击任意一张可以放大看细节；新增能力界面见下一节。
         </p>
         <p class="section__sub"><em>固件名、任务号、漏洞标题与条目路径、模型网关、授权到期与本机资源等字段已全部打码</em>，本页面不展示任何真实设备信息或漏洞信息。</p>
       </div>
@@ -341,6 +420,40 @@
             <img src="assets/img/shot-term.webp" width="1366" height="1278" loading="lazy" alt="终端页签：深色代码面板中的命令与反汇编留痕，输出回流即回合活性证据" />
           </button>
           <figcaption><b>终端页签</b>命令级留痕：Agent 在会话沙箱里跑过的每条命令与输出都回流，看护据此判断回合是否卡死；面板内容涉及目标二进制，整段脱敏。</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 新增能力界面 -->
+  <section class="section" id="new-ui">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="chip chip--eyebrow"><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>新增能力界面</p>
+        <h2>从仿真编排到 YAML 门阀，能力都落在可操作的界面里</h2>
+        <p class="section__sub">
+          任务级仿真策略、模型上下文预算与门阀 YAML 编辑器。点击任意一张可以放大看细节。
+        </p>
+        <p class="section__sub"><em>以下截图使用隔离的演示数据与假模型地址，不包含真实任务、设备、密钥或漏洞信息。</em></p>
+      </div>
+      <div class="shots">
+        <figure class="shot reveal">
+          <button class="shot-btn" type="button" data-full="assets/img/shot-policy.webp" data-alt="FirmAudit2 创建任务：任务级仿真策略编辑器（演示数据）">
+            <img src="assets/img/shot-policy.webp" width="1440" height="875" loading="lazy" alt="创建任务界面：仿真策略区按优先级排列整机仿真、单服务仿真与 Unicorn 单函数，并保留跳级留证与 127.0.0.1 请求验证开关" />
+          </button>
+          <figcaption><b>任务级仿真策略</b>整机、单服务、单函数按任务排序；跳级必须留前序失败证据，网络服务类漏洞必须过 127.0.0.1 请求验证。</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <button class="shot-btn" type="button" data-full="assets/img/shot-context.webp" data-alt="FirmAudit2 模型配置：上下文压缩预算与模式（演示数据）">
+            <img src="assets/img/shot-context.webp" width="1440" height="940" loading="lazy" alt="模型配置弹窗：最大上下文 Token、预算模式与使用百分比，下方为请求限流与思考模式" />
+          </button>
+          <figcaption><b>上下文压缩配置</b>每个模型独立设置最大上下文与预算模式；网关按实时档位计算阈值，越限裁剪而不是暂停任务。</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <button class="shot-btn" type="button" data-full="assets/img/shot-gates-yaml.webp" data-alt="FirmAudit2 门阀 YAML 逻辑链编辑器（演示数据）">
+            <img src="assets/img/shot-gates-yaml.webp" width="1440" height="940" loading="lazy" alt="门阀逻辑 YAML 编辑器：gate、label 与 chain 节点，右侧为解析并保存按钮与校验提示" />
+          </button>
+          <figcaption><b>YAML 门阀逻辑链</b>节点顺序、启停、参数、话术与自定义表达式都可编排；保存时做白名单、锁定参数与严格解析。</figcaption>
         </figure>
       </div>
     </div>
@@ -481,7 +594,7 @@
     <div class="hero__grid" aria-hidden="true"></div>
     <div class="container get__inner reveal">
       <h2>把下一个固件漏洞，交给流水线</h2>
-      <p>FirmAudit2 为闭源商业软件，采用设备绑定的离线授权（单设备永久授权）。使用前请确认前置环境就绪。</p>
+      <p>FirmAudit2 为闭源商业软件，采用设备绑定的离线授权（单设备永久授权）。当前价格 <b>￥90</b>，使用前请确认前置环境就绪。</p>
       <ul class="reqs">
         <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-monitor"/></svg>Windows 11 x64，已启用 WSL2</li>
         <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-db"/></svg>磁盘建议 ≥ 40GB 可用</li>
@@ -499,8 +612,8 @@
       <p class="get__note">或写信到 <a href="mailto:1703417187@qq.com">1703417187@qq.com</a>，说明使用场景与设备数量。</p>
     </div>
     <figure class="get__poster reveal">
-      <button class="shot-btn" type="button" data-full="assets/img/promo-get.webp" data-alt="FirmAudit2 购买宣传图：JiuZero 的个人店铺二维码，公测首发价 ¥50，单设备永久授权 · 库存 20 份，需自备大模型 API 密钥">
-        <img src="assets/img/promo-get.webp" alt="FirmAudit2 购买宣传图：JiuZero 的个人店铺二维码，公测首发价 ¥50，单设备永久授权 · 库存 20 份，需自备大模型 API 密钥" loading="lazy" width="2048" height="1152" />
+      <button class="shot-btn" type="button" data-full="assets/img/promo-get.webp" data-alt="FirmAudit2 购买宣传图：JiuZero 的个人店铺二维码，当前价格 ￥90，单设备永久授权，需自备大模型 API 密钥">
+        <img src="assets/img/promo-get.webp" alt="FirmAudit2 购买宣传图：JiuZero 的个人店铺二维码，当前价格 ￥90，单设备永久授权，需自备大模型 API 密钥" loading="lazy" width="2048" height="1152" />
       </button>
       <figcaption>扫码或长按识别进入店铺下单；点击这张图可放大到原图尺寸，二维码更清晰。</figcaption>
     </figure>
@@ -512,12 +625,12 @@
       <div class="footer__brand">
         <img src="assets/img/logo.png" alt="" />
         <span>FirmAudit2</span>
-        <span class="footer__ver">V1.0.1</span>
+        <span class="footer__ver">V1.1.164</span>
       </div>
       <p class="footer__credit">
         前端界面基于上游开源项目 <b>CTF-BTFly</b>（已获得作者授权用于闭源商用），在此致谢。
       </p>
-      <p class="footer__copy">© 2026 FirmAudit2 · 保留所有权利。本仓库仅含宣传站点与已脱敏的界面截图、概念图，不包含任何产品源代码、真实设备信息或漏洞信息。</p>
+      <p class="footer__copy">© 2026 FirmAudit2 · 保留所有权利。本仓库仅含宣传站点与已脱敏或隔离演示的界面截图、概念图，不包含任何产品源代码、真实设备信息或漏洞信息。</p>
     </div>
   </footer>
 
