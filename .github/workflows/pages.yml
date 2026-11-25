@@ -34,9 +34,9 @@ jobs:
           cp index.html README.md .nojekyll _site/
           cp -r assets _site/assets
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
